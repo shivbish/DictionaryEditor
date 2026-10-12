@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>JSON Builder</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E😁%3C/text%3E%3C/svg%3E">
+
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --card: #fff;
+      --text: #1b1f24;
+      --muted: #667085;
+      --line: #d9dee5;
+      --accent: #149b9e;
+      --err: #d92d20;
+      --ok: #12803c;
+      --code: #f0f2f5;
+      box-sizing: border-box;
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 0px)
+    }
+
+    @media (prefers-color-scheme:dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #14171c;
+        --card: #1d2127;
+        --text: #e8eaed;
+        --muted: #98a2b3;
+        --line: #323841;
+        --accent: #149b9e;
+        --err: #ff7b72;
+        --ok: #4cc38a;
+        --code: #12151a
+      }
+    }
+
+    :root[data-theme="dark"] {
+      --bg: #14171c;
+      --card: #1d2127;
+      --text: #e8eaed;
+      --muted: #98a2b3;
+      --line: #323841;
+      --accent: #149b9e;
+      --err: #ff7b72;
+      --ok: #4cc38a;
+      --code: #12151a
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif
+    }
+
+    main {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 20px 16px 40px
+    }
+
+    h1 {
+      font-size: 22px;
+      margin: 0 0 4px
+    }
+
+    p.sub {
+      color: var(--muted);
+      margin: 0 0 16px
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap
+    }
+
+    .field {
+      flex: 1 1 180px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px
+    }
+
+    label {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 600
+    }
+
+    input,
+    select,
+    textarea {
+      font: inherit;
+      color: var(--text);
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 9px 10px;
+      width: 100%
+    }
+
+    input:focus,
+    select:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: -1px
+    }
+
+    input.bad {
+      border-color: var(--err)
+    }
+
+    button {
+      font: inherit;
+      cursor: pointer;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: var(--card);
+      color: var(--text);
+      padding: 9px 14px
+    }
+
+    button.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      font-weight: 600
+    }
+
+    button:disabled {
+      opacity: .5;
+      cursor: not-allowed
+    }
+
+    .msg {
+      min-height: 20px;
+      font-size: 13px;
+      margin-top: 8px
+    }
+
+    .msg.err {
+      color: var(--err)
+    }
+
+    .msg.ok {
+      color: var(--ok)
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse
+    }
+
+    .scroll {
+      overflow-x: auto
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 8px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      word-break: break-word
+    }
+
+    th {
+      font-size: 12px;
+      color: var(--muted)
+    }
+
+    td.t {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap
+    }
+
+    th.n,
+    td.n {
+      width: 44px;
+      color: var(--muted);
+      font-size: 12px
+    }
+
+    .head input[type=search] {
+      width: 230px;
+      max-width: 100%
+    }
+
+    .act {
+      white-space: nowrap
+    }
+
+    .act button {
+      margin-right: 6px;
+      padding: 6px 10px
+    }
+
+    td input,
+    td select {
+      min-width: 110px;
+      padding: 6px 8px
+    }
+
+    pre {
+      background: var(--code);
+      border-radius: 8px;
+      padding: 12px;
+      margin: 0;
+      overflow-x: auto;
+      font: 13px/1.5 ui-monospace, Menlo, Consolas, monospace;
+      max-height: 320px
+    }
+
+    .head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 10px
+    }
+
+    .head h2 {
+      font-size: 16px;
+      margin: 0
+    }
+
+    .empty {
+      color: var(--muted);
+      padding: 8px 0
+    }
+
+    .scroll {
+       /* Step 1: Set a maximum or fixed limit */
+      max-height: 600px;
+
+      /* Step 2: Add vertical scroll behavior when content overflows */
+      overflow-y: auto;
+
+      /* Optional styling to see the box */
+      border: 1px solid #222020;
+      padding: 10px;
+    }
+
+    .modal {position: fixed; inset: 0; background: rgba(0, 0, 0, .45); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 10}
+    .modal[hidden] {display: none}
+    .box {background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px; max-width: 560px; width: 100%; max-height: 85vh; display: flex; flex-direction: column}
+    .box h3 {margin: 0 0 8px; font-size: 17px}
+    #mb {overflow: auto; font-size: 14px}
+    #mb ul {margin: 4px 0 10px; padding-left: 18px}
+    #mb .muted {color: var(--muted)}
+  </style>
+</head>
+
+<body>
+  <main>
+    <h1>Dictionary Builder</h1>
+    <p class="sub">Add key/value pairs, duplicate keys and duplicate values are blocked, then download your .json file.
+    </p>
+
+    <div class="card">
+      <div class="row">
+        <div class="field"><label for="k">Key</label><input id="k" placeholder="Gurmukhi Punjabi" autocomplete="off"></div>
+        <div class="field"><label for="v">Value</label><input id="v" placeholder="Roman Punjabi" autocomplete="off"></div>
+        <div class="field" style="flex:0 1 130px"><label for="t">Type</label>
+          <select id="t">
+            <option value="string">String</option>
+            <option value="number">Number</option>
+            <option value="boolean">Boolean</option>
+            <option value="null">Null</option>
+            <option value="json">JSON (object/array)</option>
+          </select>
+        </div>
+      </div>
+      <div class="row" style="margin-top:12px"><button class="primary" id="add">Add pair</button><button
+          id="clear">Clear all</button><button id="dups">Find duplicate keys</button></div>
+      <div class="msg" id="msg"></div>
+    </div>
+
+    <div class="card">
+      <div class="head">
+        <h2>Entries (<span id="count">0</span>)</h2><input type="search" id="q" placeholder="Search key, value or type"
+          aria-label="Search entries">
+      </div>
+      <div class="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th class="n">#</th>
+              <th>Key</th>
+              <th>Value</th>
+              <th>Type</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="empty">No entries yet.</div>
+    </div>
+
+    <div class="card">
+      <div class="head">
+        <h2>JSON preview</h2>
+        <div class="row" style="align-items:center">
+          <input id="fn" value="dictionaryV0.0.0.json" style="width:150px" aria-label="File name">
+          <button id="copy">Copy</button><button class="primary" id="dl">Download</button>
+        </div>
+      </div>
+      <pre id="out">{}</pre>
+      <div style="margin-top:12px"><label for="load">Load a JSON file (or several). If your list already has entries, the new ones are merged in after you review them.</label><input
+          type="file" id="load" accept=".json,application/json" multiple></div>
+    </div>
+    <div>
+      <p>Developed by Punjab Team. Made with Love 😊</p>
+    </div>
+  </main>
+  <div id="modal" class="modal" hidden>
+    <div class="box" role="dialog" aria-modal="true" aria-labelledby="mt">
+      <h3 id="mt"></h3>
+      <div id="mb"></div>
+      <div class="row" style="margin-top:14px;justify-content:flex-end"><button id="mno">Cancel</button><button class="primary" id="myes">OK</button></div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var entries = []; // {key,type,value}
+      var editing = -1, focusEl = null;
+      var $ = function (i) {return document.getElementById(i)};
+      var k = $('k'), v = $('v'), t = $('t'), msg = $('msg');
+
+      function say(text, cls) {msg.textContent = text; msg.className = 'msg ' + (cls || '')}
+      // nk = key as stored: Unicode NFC (so the same Gurmukhi letter always has the same code points) + trimmed.
+      // ck = key as compared: nk without invisible characters (zero-width space/joiners, BOM).
+      function nk(x) {return String(x).normalize('NFC').trim()}
+      function ck(x) {return String(x).normalize('NFC').replace(/[\u200B-\u200D\uFEFF]/g, '').trim()}
+      function codes(x) {return Array.from(String(x)).map(function (c) {return 'U+' + c.codePointAt(0).toString(16).toUpperCase().padStart(4, '0')}).join(' ')}
+      function has(key, skip) {var c = ck(key); return entries.some(function (e, i) {return i !== skip && ck(e.key) === c})}
+      function rawOf(e) {return e.type === 'null' ? '' : e.type === 'json' ? JSON.stringify(e.value) : String(e.value)}
+      function keyWithValue(val, skip) {var j = JSON.stringify(val); var f = entries.filter(function (e, i) {return i !== skip && JSON.stringify(e.value) === j})[0]; return f ? f.key : null}
+      function parse(type, raw) {
+        if (type === 'string') return raw;
+        if (type === 'number') {var n = Number(raw); if (raw.trim() === '' || isNaN(n)) throw new Error('Value is not a valid number'); return n}
+        if (type === 'boolean') {var s = raw.trim().toLowerCase(); if (s === 'true') return true; if (s === 'false') return false; throw new Error('Boolean must be true or false')}
+        if (type === 'null') return null;
+        try {return JSON.parse(raw)} catch (e) {throw new Error('Invalid JSON: ' + e.message)}
+      }
+      function ask(title, blocks, ok) {
+        return new Promise(function (res) {
+          var m = $('modal'), mb = $('mb'); $('mt').textContent = title; mb.innerHTML = '';
+          blocks.forEach(function (b) {
+            if (typeof b === 'string') {var p = document.createElement('p'); p.style.margin = '0 0 8px'; p.textContent = b; mb.appendChild(p)}
+            else {
+              var h = document.createElement('div'); h.style.fontWeight = '600'; h.textContent = b.h; mb.appendChild(h);
+              var ul = document.createElement('ul');
+              b.items.slice(0, 40).forEach(function (x) {var li = document.createElement('li'); li.textContent = x; ul.appendChild(li)});
+              if (b.items.length > 40) {var li = document.createElement('li'); li.className = 'muted'; li.textContent = '...and ' + (b.items.length - 40) + ' more'; ul.appendChild(li)}
+              mb.appendChild(ul);
+            }
+          });
+          $('myes').textContent = ok || 'OK';
+          function done(r) {m.hidden = true; document.removeEventListener('keydown', key); $('myes').onclick = null; $('mno').onclick = null; m.onclick = null; res(r)}
+          function key(e) {if (e.key === 'Escape') done(false)}
+          $('myes').onclick = function () {done(true)}; $('mno').onclick = function () {done(false)};
+          m.onclick = function (e) {if (e.target === m) done(false)};
+          document.addEventListener('keydown', key);
+          m.hidden = false; $('myes').focus();
+        });
+      }
+      function readJsonFile(f) {
+        return new Promise(function (res) {
+          var r = new FileReader();
+          r.onload = function () {
+            try {
+              var o = JSON.parse(r.result);
+              if (o === null || typeof o !== 'object' || Array.isArray(o)) throw new Error('top level must be a JSON object');
+              res({name: f.name, obj: o});
+            } catch (e) {res({name: f.name, error: e.message})}
+          };
+          r.onerror = function () {res({name: f.name, error: 'could not read file'})};
+          r.readAsText(f);
+        });
+      }
+      // Sort every entry of every chosen file into "add" or "skip" WITHOUT changing the list yet.
+      function planMerge(files) {
+        var seenK = Object.create(null), seenV = Object.create(null), add = [], skip = [];
+        entries.forEach(function (e) {seenK[ck(e.key)] = 1; seenV[JSON.stringify(e.value)] = e.key});
+        files.forEach(function (f) {
+          Object.keys(f.obj).forEach(function (key) {
+            var val = f.obj[key], j = JSON.stringify(val), why = null;
+            if (!ck(key)) why = 'empty key';
+            else if (seenK[ck(key)]) why = 'key already exists';
+            else if (seenV[j] !== undefined) why = 'value already used by "' + seenV[j] + '"';
+            if (why) skip.push({key: key, why: why, file: f.name});
+            else {add.push({key: nk(key), type: typeOf(val), value: val}); seenK[ck(key)] = 1; seenV[j] = nk(key)}
+          });
+        });
+        return {add: add, skip: skip};
+      }
+      async function mergeFiles(results) {
+        var good = results.filter(function (r) {return !r.error}), bad = results.filter(function (r) {return r.error});
+        var badNote = bad.length ? ' Could not read: ' + bad.map(function (b) {return b.name + ' (' + b.error + ')'}).join('; ') + '.' : '';
+        if (!good.length) {say('No valid JSON file chosen.' + badNote, 'err'); return }
+        var plan = planMerge(good), total = plan.add.length + plan.skip.length, many = good.length > 1;
+        var first = entries.length === 0, verb = first ? 'Loaded' : 'Merged';
+        if (!total) {say('The chosen file is empty. Nothing to merge.' + badNote, 'err'); return }
+        if (!plan.add.length) {say('Nothing to ' + (first ? 'load' : 'merge') + ': all ' + total + ' entries are duplicates, so the list was not changed.' + badNote, 'err'); return }
+        var blocks = ['Reading ' + good.length + ' file' + (many ? 's' : '') + ' (' + total + ' entries): ' + plan.add.length + ' new, ' + plan.skip.length + ' will be skipped as duplicates.' + (first ? '' : ' Entries already in your list are never changed.') + badNote,
+          {h: (first ? 'Will be loaded (' : 'Will be added (') + plan.add.length + ')', items: plan.add.map(function (x) {return x.key + ' = ' + (typeof x.value === 'object' && x.value !== null ? JSON.stringify(x.value) : String(x.value)).slice(0, 60)})}];
+        if (plan.skip.length) blocks.push({h: 'Skipped (' + plan.skip.length + ')', items: plan.skip.map(function (x) {return x.key + ' - ' + x.why + (many ? ' [' + x.file + ']' : '')})});
+        // First upload into an empty list: just load it (only ask if the file itself contains duplicates to skip).
+        var ok = true;
+        if (!first || plan.skip.length) ok = await ask(first ? 'Load this file?' : 'Merge into your current list?', blocks, first ? 'Load ' + plan.add.length : 'Merge ' + plan.add.length + ' new');
+        if (!ok) {say((first ? 'Load' : 'Merge') + ' cancelled. Nothing was changed.'); return }
+        plan.add.forEach(function (x) {entries.push(x)});
+        render(); say(verb + ' ' + plan.add.length + (first ? '' : ' new') + ' entr' + (plan.add.length === 1 ? 'y' : 'ies') + (plan.skip.length ? ', skipped ' + plan.skip.length + ' duplicate(s).' : '.'), 'ok');
+      }
+      function build() {var o = {}; entries.forEach(function (e) {o[e.key] = e.value}); return o}
+      function render() {
+        var rows = $('rows'); rows.innerHTML = '';
+        var q = $('q').value.trim().toLowerCase(), shown = 0;
+        $('q').disabled = editing !== -1;
+        entries.forEach(function (e, i) {
+          if (i !== editing && q) {
+            var hay = (e.key + ' ' + (typeof e.value === 'object' && e.value !== null ? JSON.stringify(e.value) : String(e.value)) + ' ' + e.type).toLowerCase();
+            if (hay.indexOf(q) === -1) return;
+          }
+          shown++;
+          var tr = document.createElement('tr');
+          var n = document.createElement('td'); n.className = 'n'; n.textContent = i + 1;
+          var a = document.createElement('td'), b = document.createElement('td'), c = document.createElement('td'), d = document.createElement('td');
+          d.className = 'act'; c.className = 't';
+          if (i === editing) {
+            var ki = document.createElement('input'); ki.value = e.key; ki.setAttribute('aria-label', 'Key');
+            var vi = document.createElement('input'); vi.value = rawOf(e); vi.setAttribute('aria-label', 'Value');
+            var ts = document.createElement('select'); ts.setAttribute('aria-label', 'Type');
+            ['string', 'number', 'boolean', 'null', 'json'].forEach(function (o) {var op = document.createElement('option'); op.value = o; op.textContent = o; if (o === e.type) op.selected = true; ts.appendChild(op)});
+            var save = function () {
+              var key = nk(ki.value);
+              if (!key) {say('Key cannot be empty.', 'err'); ki.focus(); return }
+              if (has(key, i)) {say('Key "' + key + '" already exists. Use a different key.', 'err'); ki.focus(); return }
+              var val; try {val = parse(ts.value, vi.value)} catch (err) {say(err.message, 'err'); vi.focus(); return }
+              var dk = keyWithValue(val, i);
+              if (dk !== null) {say('This value is already used by key "' + dk + '". Use a different value.', 'err'); vi.focus(); return }
+              entries[i] = {key: key, type: ts.value, value: val}; editing = -1; say('Updated "' + key + '".', 'ok'); render();
+            };
+            var cancel = function () {editing = -1; say(''); render()};
+            [ki, vi].forEach(function (el) {el.addEventListener('keydown', function (ev) {if (ev.key === 'Enter') save(); else if (ev.key === 'Escape') cancel()})});
+            var sv = document.createElement('button'); sv.textContent = 'Save'; sv.className = 'primary'; sv.onclick = save;
+            var cn = document.createElement('button'); cn.textContent = 'Cancel'; cn.onclick = cancel;
+            a.appendChild(ki); b.appendChild(vi); c.appendChild(ts); d.append(sv, cn);
+            focusEl = ki;
+          } else {
+            a.textContent = e.key;
+            b.textContent = typeof e.value === 'object' && e.value !== null ? JSON.stringify(e.value) : String(e.value);
+            c.textContent = e.type;
+            var ed = document.createElement('button'); ed.textContent = 'Edit';
+            ed.onclick = function () {editing = i; say(''); render()};
+            var x = document.createElement('button'); x.textContent = 'Delete';
+            x.onclick = function () {entries.splice(i, 1); editing = -1; render()};
+            d.append(ed, x);
+          }
+          tr.append(n, a, b, c, d); rows.appendChild(tr);
+        });
+        if (focusEl) {focusEl.focus(); focusEl.select && focusEl.select(); focusEl = null}
+        $('count').textContent = q ? shown + ' of ' + entries.length : entries.length;
+        var em = $('empty');
+        if (!entries.length) {em.textContent = 'No entries yet.'; em.style.display = 'block'}
+        else if (!shown) {em.textContent = 'No entries match your search.'; em.style.display = 'block'}
+        else em.style.display = 'none';
+        $('out').textContent = JSON.stringify(build(), null, 2);
+      }
+      function checkLive() {
+        var key = k.value.trim(), err = '';
+        k.classList.remove('bad'); v.classList.remove('bad');
+        if (key && has(key)) {k.classList.add('bad'); err = 'Key "' + key + '" already exists. Use a different key.'}
+        if (!err && v.value !== '' || t.value === 'null') {
+          try {var dk = keyWithValue(parse(t.value, v.value)); if (dk !== null && !err) {v.classList.add('bad'); err = 'This value is already used by key "' + dk + '". Use a different value.'} } catch (e) { }
+        }
+        if (err) say(err, 'err'); else if (msg.className.indexOf('err') > -1) say('');
+      }
+      function add() {
+        var key = nk(k.value);
+        if (!key) {say('Key cannot be empty.', 'err'); k.focus(); return }
+        if (has(key)) {say('Key "' + key + '" already exists. Use a different key.', 'err'); k.classList.add('bad'); k.focus(); return }
+        var val;
+        try {val = parse(t.value, v.value)} catch (e) {say(e.message, 'err'); v.focus(); return }
+        var dk = keyWithValue(val);
+        if (dk !== null) {say('This value is already used by key "' + dk + '". Use a different value.', 'err'); v.classList.add('bad'); v.focus(); return }
+        entries.push({key: key, type: t.value, value: val});
+        k.value = ''; v.value = ''; k.classList.remove('bad'); v.classList.remove('bad'); say('Added "' + key + '".', 'ok'); render(); k.focus();
+      }
+      function typeOf(x) {return x === null ? 'null' : Array.isArray(x) ? 'json' : typeof x === 'object' ? 'json' : typeof x}
+
+      k.addEventListener('input', checkLive); v.addEventListener('input', checkLive); t.addEventListener('change', checkLive);
+      $('add').onclick = add;
+      $('q').addEventListener('input', render);
+      [k, v].forEach(function (el) {el.addEventListener('keydown', function (e) {if (e.key === 'Enter') add()})});
+      $('clear').onclick = function () {if (!entries.length || confirm('Remove all entries?')) {entries = []; editing = -1; render(); say('')} };
+      $('copy').onclick = function () {
+        var text = $('out').textContent;
+        if (navigator.clipboard) {navigator.clipboard.writeText(text).then(function () {say('Copied to clipboard.', 'ok')}, function () {say('Copy failed, select the text manually.', 'err')})}
+        else say('Copy not available here, select the text manually.', 'err');
+      };
+      $('dl').onclick = function () {
+        var name = ($('fn').value.trim() || 'data.json'); if (!/\.json$/i.test(name)) name += '.json';
+        var blob = new Blob([$('out').textContent], {type: 'application/json'});
+        var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+        document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () {URL.revokeObjectURL(a.href)}, 1000);
+      };
+      $('dups').onclick = function () {
+        var groups = Object.create(null), order = [];
+        entries.forEach(function (e, i) {var c = ck(e.key); if (!groups[c]) {groups[c] = []; order.push(c)} groups[c].push({n: i + 1, e: e})});
+        var dup = order.filter(function (c) {return groups[c].length > 1});
+        if (!dup.length) {say('No duplicate keys found.', 'ok'); return }
+        var blocks = [dup.length + ' key' + (dup.length === 1 ? '' : 's') + ' appear more than once. They look identical but are stored with different characters (or hidden spaces). Search for the key and use Delete on the row you do not want.'];
+        dup.slice(0, 30).forEach(function (c) {
+          var g = groups[c];
+          blocks.push({h: g[0].e.key, items: g.map(function (x) {return '#' + x.n + '  ' + x.e.key + ' = ' + String(typeof x.e.value === 'object' ? JSON.stringify(x.e.value) : x.e.value).slice(0, 40) + '   [' + codes(x.e.key) + ']'})});
+        });
+        if (dup.length > 30) blocks.push('...and ' + (dup.length - 30) + ' more.');
+        ask('Duplicate keys', blocks, 'Close');
+      };
+      $('load').onchange = function (ev) {
+        var list = Array.prototype.slice.call(ev.target.files); ev.target.value = '';
+        if (!list.length) return;
+        Promise.all(list.map(readJsonFile)).then(mergeFiles);
+      };
+      render();
+    })();
+  </script>
+</body>
+
+</html>
