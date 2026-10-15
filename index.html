@@ -4,9 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>JSON Editor</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E😁%3C/text%3E%3C/svg%3E">
-
+  <title>Dictionary Editor</title>
   <style>
     :root {
       --bg: #f6f7f9;
@@ -14,7 +12,7 @@
       --text: #1b1f24;
       --muted: #667085;
       --line: #d9dee5;
-      --accent: #149b9e;
+      --accent: #2f6fed;
       --err: #d92d20;
       --ok: #12803c;
       --code: #f0f2f5;
@@ -30,7 +28,7 @@
         --text: #e8eaed;
         --muted: #98a2b3;
         --line: #323841;
-        --accent: #149b9e;
+        --accent: #6c9bff;
         --err: #ff7b72;
         --ok: #4cc38a;
         --code: #12151a
@@ -43,7 +41,7 @@
       --text: #e8eaed;
       --muted: #98a2b3;
       --line: #323841;
-      --accent: #149b9e;
+      --accent: #6c9bff;
       --err: #ff7b72;
       --ok: #4cc38a;
       --code: #12151a
@@ -247,7 +245,7 @@
     }
 
     .scroll {
-       /* Step 1: Set a maximum or fixed limit */
+      /* Step 1: Set a maximum or fixed limit */
       max-height: 600px;
 
       /* Step 2: Add vertical scroll behavior when content overflows */
@@ -258,26 +256,67 @@
       padding: 10px;
     }
 
-    .modal {position: fixed; inset: 0; background: rgba(0, 0, 0, .45); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 10}
-    .modal[hidden] {display: none}
-    .box {background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px; max-width: 560px; width: 100%; max-height: 85vh; display: flex; flex-direction: column}
-    .box h3 {margin: 0 0 8px; font-size: 17px}
-    #mb {overflow: auto; font-size: 14px}
-    #mb ul {margin: 4px 0 10px; padding-left: 18px}
-    #mb .muted {color: var(--muted)}
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 10
+    }
+
+    .modal[hidden] {
+      display: none
+    }
+
+    .box {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 18px;
+      max-width: 560px;
+      width: 100%;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column
+    }
+
+    .box h3 {
+      margin: 0 0 8px;
+      font-size: 17px
+    }
+
+    #mb {
+      overflow: auto;
+      font-size: 14px
+    }
+
+    #mb ul {
+      margin: 4px 0 10px;
+      padding-left: 18px
+    }
+
+    #mb .muted {
+      color: var(--muted)
+    }
   </style>
 </head>
 
 <body>
   <main>
-    <h1>Dictionary Editor</h1>
-    <p class="sub">Add key/value pairs, duplicate keys and duplicate values are blocked, then download your .json file.
+    <h1>Dictionary Builder</h1>
+    <p class="sub">Add key/value pairs, duplicate keys and duplicate values are blocked, then download your dictionary
+      as JSON, Excel, Word, CSV and more.
     </p>
 
     <div class="card">
       <div class="row">
-        <div class="field"><label for="k">Key</label><input id="k" placeholder="Gurmukhi Punjabi" autocomplete="off"></div>
-        <div class="field"><label for="v">Value</label><input id="v" placeholder="Roman Punjabi" autocomplete="off"></div>
+        <div class="field"><label for="k">Key</label><input id="k" placeholder="Gurmukhi Punjabi" autocomplete="off">
+        </div>
+        <div class="field"><label for="v">Value</label><input id="v" placeholder="Roman Punjabi" autocomplete="off">
+        </div>
         <div class="field" style="flex:0 1 130px"><label for="t">Type</label>
           <select id="t">
             <option value="string">String</option>
@@ -291,6 +330,7 @@
       <div class="row" style="margin-top:12px"><button class="primary" id="add">Add pair</button><button
           id="clear">Clear all</button><button id="dups">Find duplicate keys</button></div>
       <div class="msg" id="msg"></div>
+      <div id="savedAt" style="font-size:12px;color:var(--muted);margin-top:4px"></div>
     </div>
 
     <div class="card">
@@ -319,13 +359,25 @@
       <div class="head">
         <h2>JSON preview</h2>
         <div class="row" style="align-items:center">
-          <input id="fn" value="dictionaryV0.0.0.json" style="width:150px" aria-label="File name">
+          <input id="fn" value="data.json" style="width:150px" aria-label="File name">
+          <select id="fmt" aria-label="Download format" style="width:auto">
+            <option value="json">JSON (.json)</option>
+            <option value="xlsx">Excel (.xlsx)</option>
+            <option value="docx">Word (.docx)</option>
+            <option value="csv">CSV (.csv)</option>
+            <option value="tsv">TSV (.tsv)</option>
+            <option value="txt">Text (.txt)</option>
+            <option value="md">Markdown (.md)</option>
+            <option value="html">Web page (.html)</option>
+            <option value="xml">XML (.xml)</option>
+          </select>
           <button id="copy">Copy</button><button class="primary" id="dl">Download</button>
         </div>
       </div>
       <pre id="out">{}</pre>
-      <div style="margin-top:12px"><label for="load">Load a JSON file (or several). If your list already has entries, the new ones are merged in after you review them.</label><input
-          type="file" id="load" accept=".json,application/json" multiple></div>
+      <div style="margin-top:12px"><label for="load">Load a JSON file (or several). If your list already has entries,
+          the new ones are merged in after you review them.</label><input type="file" id="load"
+          accept=".json,application/json" multiple></div>
     </div>
     <div>
       <p>Developed by Punjab Team. Made with Love 😊</p>
@@ -335,50 +387,51 @@
     <div class="box" role="dialog" aria-modal="true" aria-labelledby="mt">
       <h3 id="mt"></h3>
       <div id="mb"></div>
-      <div class="row" style="margin-top:14px;justify-content:flex-end"><button id="mno">Cancel</button><button class="primary" id="myes">OK</button></div>
+      <div class="row" style="margin-top:14px;justify-content:flex-end"><button id="mno">Cancel</button><button
+          class="primary" id="myes">OK</button></div>
     </div>
   </div>
   <script>
     (function () {
       var entries = []; // {key,type,value}
       var editing = -1, focusEl = null;
-      var $ = function (i) {return document.getElementById(i)};
+      var $ = function (i) { return document.getElementById(i) };
       var k = $('k'), v = $('v'), t = $('t'), msg = $('msg');
 
-      function say(text, cls) {msg.textContent = text; msg.className = 'msg ' + (cls || '')}
+      function say(text, cls) { msg.textContent = text; msg.className = 'msg ' + (cls || '') }
       // nk = key as stored: Unicode NFC (so the same Gurmukhi letter always has the same code points) + trimmed.
       // ck = key as compared: nk without invisible characters (zero-width space/joiners, BOM).
-      function nk(x) {return String(x).normalize('NFC').trim()}
-      function ck(x) {return String(x).normalize('NFC').replace(/[\u200B-\u200D\uFEFF]/g, '').trim()}
-      function codes(x) {return Array.from(String(x)).map(function (c) {return 'U+' + c.codePointAt(0).toString(16).toUpperCase().padStart(4, '0')}).join(' ')}
-      function has(key, skip) {var c = ck(key); return entries.some(function (e, i) {return i !== skip && ck(e.key) === c})}
-      function rawOf(e) {return e.type === 'null' ? '' : e.type === 'json' ? JSON.stringify(e.value) : String(e.value)}
-      function keyWithValue(val, skip) {var j = JSON.stringify(val); var f = entries.filter(function (e, i) {return i !== skip && JSON.stringify(e.value) === j})[0]; return f ? f.key : null}
+      function nk(x) { return String(x).normalize('NFC').trim() }
+      function ck(x) { return String(x).normalize('NFC').replace(/[\u200B-\u200D\uFEFF]/g, '').trim() }
+      function codes(x) { return Array.from(String(x)).map(function (c) { return 'U+' + c.codePointAt(0).toString(16).toUpperCase().padStart(4, '0') }).join(' ') }
+      function has(key, skip) { var c = ck(key); return entries.some(function (e, i) { return i !== skip && ck(e.key) === c }) }
+      function rawOf(e) { return e.type === 'null' ? '' : e.type === 'json' ? JSON.stringify(e.value) : String(e.value) }
+      function keyWithValue(val, skip) { var j = JSON.stringify(val); var f = entries.filter(function (e, i) { return i !== skip && JSON.stringify(e.value) === j })[0]; return f ? f.key : null }
       function parse(type, raw) {
         if (type === 'string') return raw;
-        if (type === 'number') {var n = Number(raw); if (raw.trim() === '' || isNaN(n)) throw new Error('Value is not a valid number'); return n}
-        if (type === 'boolean') {var s = raw.trim().toLowerCase(); if (s === 'true') return true; if (s === 'false') return false; throw new Error('Boolean must be true or false')}
+        if (type === 'number') { var n = Number(raw); if (raw.trim() === '' || isNaN(n)) throw new Error('Value is not a valid number'); return n }
+        if (type === 'boolean') { var s = raw.trim().toLowerCase(); if (s === 'true') return true; if (s === 'false') return false; throw new Error('Boolean must be true or false') }
         if (type === 'null') return null;
-        try {return JSON.parse(raw)} catch (e) {throw new Error('Invalid JSON: ' + e.message)}
+        try { return JSON.parse(raw) } catch (e) { throw new Error('Invalid JSON: ' + e.message) }
       }
       function ask(title, blocks, ok) {
         return new Promise(function (res) {
           var m = $('modal'), mb = $('mb'); $('mt').textContent = title; mb.innerHTML = '';
           blocks.forEach(function (b) {
-            if (typeof b === 'string') {var p = document.createElement('p'); p.style.margin = '0 0 8px'; p.textContent = b; mb.appendChild(p)}
+            if (typeof b === 'string') { var p = document.createElement('p'); p.style.margin = '0 0 8px'; p.textContent = b; mb.appendChild(p) }
             else {
               var h = document.createElement('div'); h.style.fontWeight = '600'; h.textContent = b.h; mb.appendChild(h);
               var ul = document.createElement('ul');
-              b.items.slice(0, 40).forEach(function (x) {var li = document.createElement('li'); li.textContent = x; ul.appendChild(li)});
-              if (b.items.length > 40) {var li = document.createElement('li'); li.className = 'muted'; li.textContent = '...and ' + (b.items.length - 40) + ' more'; ul.appendChild(li)}
+              b.items.slice(0, 40).forEach(function (x) { var li = document.createElement('li'); li.textContent = x; ul.appendChild(li) });
+              if (b.items.length > 40) { var li = document.createElement('li'); li.className = 'muted'; li.textContent = '...and ' + (b.items.length - 40) + ' more'; ul.appendChild(li) }
               mb.appendChild(ul);
             }
           });
           $('myes').textContent = ok || 'OK';
-          function done(r) {m.hidden = true; document.removeEventListener('keydown', key); $('myes').onclick = null; $('mno').onclick = null; m.onclick = null; res(r)}
-          function key(e) {if (e.key === 'Escape') done(false)}
-          $('myes').onclick = function () {done(true)}; $('mno').onclick = function () {done(false)};
-          m.onclick = function (e) {if (e.target === m) done(false)};
+          function done(r) { m.hidden = true; document.removeEventListener('keydown', key); $('myes').onclick = null; $('mno').onclick = null; m.onclick = null; res(r) }
+          function key(e) { if (e.key === 'Escape') done(false) }
+          $('myes').onclick = function () { done(true) }; $('mno').onclick = function () { done(false) };
+          m.onclick = function (e) { if (e.target === m) done(false) };
           document.addEventListener('keydown', key);
           m.hidden = false; $('myes').focus();
         });
@@ -390,48 +443,48 @@
             try {
               var o = JSON.parse(r.result);
               if (o === null || typeof o !== 'object' || Array.isArray(o)) throw new Error('top level must be a JSON object');
-              res({name: f.name, obj: o});
-            } catch (e) {res({name: f.name, error: e.message})}
+              res({ name: f.name, obj: o });
+            } catch (e) { res({ name: f.name, error: e.message }) }
           };
-          r.onerror = function () {res({name: f.name, error: 'could not read file'})};
+          r.onerror = function () { res({ name: f.name, error: 'could not read file' }) };
           r.readAsText(f);
         });
       }
       // Sort every entry of every chosen file into "add" or "skip" WITHOUT changing the list yet.
       function planMerge(files) {
         var seenK = Object.create(null), seenV = Object.create(null), add = [], skip = [];
-        entries.forEach(function (e) {seenK[ck(e.key)] = 1; seenV[JSON.stringify(e.value)] = e.key});
+        entries.forEach(function (e) { seenK[ck(e.key)] = 1; seenV[JSON.stringify(e.value)] = e.key });
         files.forEach(function (f) {
           Object.keys(f.obj).forEach(function (key) {
             var val = f.obj[key], j = JSON.stringify(val), why = null;
             if (!ck(key)) why = 'empty key';
             else if (seenK[ck(key)]) why = 'key already exists';
             else if (seenV[j] !== undefined) why = 'value already used by "' + seenV[j] + '"';
-            if (why) skip.push({key: key, why: why, file: f.name});
-            else {add.push({key: nk(key), type: typeOf(val), value: val}); seenK[ck(key)] = 1; seenV[j] = nk(key)}
+            if (why) skip.push({ key: key, why: why, file: f.name });
+            else { add.push({ key: nk(key), type: typeOf(val), value: val }); seenK[ck(key)] = 1; seenV[j] = nk(key) }
           });
         });
-        return {add: add, skip: skip};
+        return { add: add, skip: skip };
       }
       async function mergeFiles(results) {
-        var good = results.filter(function (r) {return !r.error}), bad = results.filter(function (r) {return r.error});
-        var badNote = bad.length ? ' Could not read: ' + bad.map(function (b) {return b.name + ' (' + b.error + ')'}).join('; ') + '.' : '';
-        if (!good.length) {say('No valid JSON file chosen.' + badNote, 'err'); return }
+        var good = results.filter(function (r) { return !r.error }), bad = results.filter(function (r) { return r.error });
+        var badNote = bad.length ? ' Could not read: ' + bad.map(function (b) { return b.name + ' (' + b.error + ')' }).join('; ') + '.' : '';
+        if (!good.length) { say('No valid JSON file chosen.' + badNote, 'err'); return }
         var plan = planMerge(good), total = plan.add.length + plan.skip.length, many = good.length > 1;
         var first = entries.length === 0, verb = first ? 'Loaded' : 'Merged';
-        if (!total) {say('The chosen file is empty. Nothing to merge.' + badNote, 'err'); return }
-        if (!plan.add.length) {say('Nothing to ' + (first ? 'load' : 'merge') + ': all ' + total + ' entries are duplicates, so the list was not changed.' + badNote, 'err'); return }
+        if (!total) { say('The chosen file is empty. Nothing to merge.' + badNote, 'err'); return }
+        if (!plan.add.length) { say('Nothing to ' + (first ? 'load' : 'merge') + ': all ' + total + ' entries are duplicates, so the list was not changed.' + badNote, 'err'); return }
         var blocks = ['Reading ' + good.length + ' file' + (many ? 's' : '') + ' (' + total + ' entries): ' + plan.add.length + ' new, ' + plan.skip.length + ' will be skipped as duplicates.' + (first ? '' : ' Entries already in your list are never changed.') + badNote,
-          {h: (first ? 'Will be loaded (' : 'Will be added (') + plan.add.length + ')', items: plan.add.map(function (x) {return x.key + ' = ' + (typeof x.value === 'object' && x.value !== null ? JSON.stringify(x.value) : String(x.value)).slice(0, 60)})}];
-        if (plan.skip.length) blocks.push({h: 'Skipped (' + plan.skip.length + ')', items: plan.skip.map(function (x) {return x.key + ' - ' + x.why + (many ? ' [' + x.file + ']' : '')})});
+        { h: (first ? 'Will be loaded (' : 'Will be added (') + plan.add.length + ')', items: plan.add.map(function (x) { return x.key + ' = ' + (typeof x.value === 'object' && x.value !== null ? JSON.stringify(x.value) : String(x.value)).slice(0, 60) }) }];
+        if (plan.skip.length) blocks.push({ h: 'Skipped (' + plan.skip.length + ')', items: plan.skip.map(function (x) { return x.key + ' - ' + x.why + (many ? ' [' + x.file + ']' : '') }) });
         // First upload into an empty list: just load it (only ask if the file itself contains duplicates to skip).
         var ok = true;
         if (!first || plan.skip.length) ok = await ask(first ? 'Load this file?' : 'Merge into your current list?', blocks, first ? 'Load ' + plan.add.length : 'Merge ' + plan.add.length + ' new');
-        if (!ok) {say((first ? 'Load' : 'Merge') + ' cancelled. Nothing was changed.'); return }
-        plan.add.forEach(function (x) {entries.push(x)});
+        if (!ok) { say((first ? 'Load' : 'Merge') + ' cancelled. Nothing was changed.'); return }
+        plan.add.forEach(function (x) { entries.push(x) });
         render(); say(verb + ' ' + plan.add.length + (first ? '' : ' new') + ' entr' + (plan.add.length === 1 ? 'y' : 'ies') + (plan.skip.length ? ', skipped ' + plan.skip.length + ' duplicate(s).' : '.'), 'ok');
       }
-      function build() {var o = {}; entries.forEach(function (e) {o[e.key] = e.value}); return o}
+      function build() { var o = {}; entries.forEach(function (e) { o[e.key] = e.value }); return o }
       function render() {
         var rows = $('rows'); rows.innerHTML = '';
         var q = $('q').value.trim().toLowerCase(), shown = 0;
@@ -450,18 +503,18 @@
             var ki = document.createElement('input'); ki.value = e.key; ki.setAttribute('aria-label', 'Key');
             var vi = document.createElement('input'); vi.value = rawOf(e); vi.setAttribute('aria-label', 'Value');
             var ts = document.createElement('select'); ts.setAttribute('aria-label', 'Type');
-            ['string', 'number', 'boolean', 'null', 'json'].forEach(function (o) {var op = document.createElement('option'); op.value = o; op.textContent = o; if (o === e.type) op.selected = true; ts.appendChild(op)});
+            ['string', 'number', 'boolean', 'null', 'json'].forEach(function (o) { var op = document.createElement('option'); op.value = o; op.textContent = o; if (o === e.type) op.selected = true; ts.appendChild(op) });
             var save = function () {
               var key = nk(ki.value);
-              if (!key) {say('Key cannot be empty.', 'err'); ki.focus(); return }
-              if (has(key, i)) {say('Key "' + key + '" already exists. Use a different key.', 'err'); ki.focus(); return }
-              var val; try {val = parse(ts.value, vi.value)} catch (err) {say(err.message, 'err'); vi.focus(); return }
+              if (!key) { say('Key cannot be empty.', 'err'); ki.focus(); return }
+              if (has(key, i)) { say('Key "' + key + '" already exists. Use a different key.', 'err'); ki.focus(); return }
+              var val; try { val = parse(ts.value, vi.value) } catch (err) { say(err.message, 'err'); vi.focus(); return }
               var dk = keyWithValue(val, i);
-              if (dk !== null) {say('This value is already used by key "' + dk + '". Use a different value.', 'err'); vi.focus(); return }
-              entries[i] = {key: key, type: ts.value, value: val}; editing = -1; say('Updated "' + key + '".', 'ok'); render();
+              if (dk !== null) { say('This value is already used by key "' + dk + '". Use a different value.', 'err'); vi.focus(); return }
+              entries[i] = { key: key, type: ts.value, value: val }; editing = -1; say('Updated "' + key + '".', 'ok'); render();
             };
-            var cancel = function () {editing = -1; say(''); render()};
-            [ki, vi].forEach(function (el) {el.addEventListener('keydown', function (ev) {if (ev.key === 'Enter') save(); else if (ev.key === 'Escape') cancel()})});
+            var cancel = function () { editing = -1; say(''); render() };
+            [ki, vi].forEach(function (el) { el.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') save(); else if (ev.key === 'Escape') cancel() }) });
             var sv = document.createElement('button'); sv.textContent = 'Save'; sv.className = 'primary'; sv.onclick = save;
             var cn = document.createElement('button'); cn.textContent = 'Cancel'; cn.onclick = cancel;
             a.appendChild(ki); b.appendChild(vi); c.appendChild(ts); d.append(sv, cn);
@@ -471,68 +524,186 @@
             b.textContent = typeof e.value === 'object' && e.value !== null ? JSON.stringify(e.value) : String(e.value);
             c.textContent = e.type;
             var ed = document.createElement('button'); ed.textContent = 'Edit';
-            ed.onclick = function () {editing = i; say(''); render()};
+            ed.onclick = function () { editing = i; say(''); render() };
             var x = document.createElement('button'); x.textContent = 'Delete';
-            x.onclick = function () {entries.splice(i, 1); editing = -1; render()};
+            x.onclick = function () { entries.splice(i, 1); editing = -1; render() };
             d.append(ed, x);
           }
           tr.append(n, a, b, c, d); rows.appendChild(tr);
         });
-        if (focusEl) {focusEl.focus(); focusEl.select && focusEl.select(); focusEl = null}
+        if (focusEl) { focusEl.focus(); focusEl.select && focusEl.select(); focusEl = null }
         $('count').textContent = q ? shown + ' of ' + entries.length : entries.length;
         var em = $('empty');
-        if (!entries.length) {em.textContent = 'No entries yet.'; em.style.display = 'block'}
-        else if (!shown) {em.textContent = 'No entries match your search.'; em.style.display = 'block'}
+        if (!entries.length) { em.textContent = 'No entries yet.'; em.style.display = 'block' }
+        else if (!shown) { em.textContent = 'No entries match your search.'; em.style.display = 'block' }
         else em.style.display = 'none';
         $('out').textContent = JSON.stringify(build(), null, 2);
       }
       function checkLive() {
         var key = k.value.trim(), err = '';
         k.classList.remove('bad'); v.classList.remove('bad');
-        if (key && has(key)) {k.classList.add('bad'); err = 'Key "' + key + '" already exists. Use a different key.'}
+        if (key && has(key)) { k.classList.add('bad'); err = 'Key "' + key + '" already exists. Use a different key.' }
         if (!err && v.value !== '' || t.value === 'null') {
-          try {var dk = keyWithValue(parse(t.value, v.value)); if (dk !== null && !err) {v.classList.add('bad'); err = 'This value is already used by key "' + dk + '". Use a different value.'} } catch (e) { }
+          try { var dk = keyWithValue(parse(t.value, v.value)); if (dk !== null && !err) { v.classList.add('bad'); err = 'This value is already used by key "' + dk + '". Use a different value.' } } catch (e) { }
         }
         if (err) say(err, 'err'); else if (msg.className.indexOf('err') > -1) say('');
       }
       function add() {
         var key = nk(k.value);
-        if (!key) {say('Key cannot be empty.', 'err'); k.focus(); return }
-        if (has(key)) {say('Key "' + key + '" already exists. Use a different key.', 'err'); k.classList.add('bad'); k.focus(); return }
+        if (!key) { say('Key cannot be empty.', 'err'); k.focus(); return }
+        if (has(key)) { say('Key "' + key + '" already exists. Use a different key.', 'err'); k.classList.add('bad'); k.focus(); return }
         var val;
-        try {val = parse(t.value, v.value)} catch (e) {say(e.message, 'err'); v.focus(); return }
+        try { val = parse(t.value, v.value) } catch (e) { say(e.message, 'err'); v.focus(); return }
         var dk = keyWithValue(val);
-        if (dk !== null) {say('This value is already used by key "' + dk + '". Use a different value.', 'err'); v.classList.add('bad'); v.focus(); return }
-        entries.push({key: key, type: t.value, value: val});
+        if (dk !== null) { say('This value is already used by key "' + dk + '". Use a different value.', 'err'); v.classList.add('bad'); v.focus(); return }
+        entries.push({ key: key, type: t.value, value: val });
         k.value = ''; v.value = ''; k.classList.remove('bad'); v.classList.remove('bad'); say('Added "' + key + '".', 'ok'); render(); k.focus();
       }
-      function typeOf(x) {return x === null ? 'null' : Array.isArray(x) ? 'json' : typeof x === 'object' ? 'json' : typeof x}
+      function typeOf(x) { return x === null ? 'null' : Array.isArray(x) ? 'json' : typeof x === 'object' ? 'json' : typeof x }
 
       k.addEventListener('input', checkLive); v.addEventListener('input', checkLive); t.addEventListener('change', checkLive);
       $('add').onclick = add;
       $('q').addEventListener('input', render);
-      [k, v].forEach(function (el) {el.addEventListener('keydown', function (e) {if (e.key === 'Enter') add()})});
-      $('clear').onclick = function () {if (!entries.length || confirm('Remove all entries?')) {entries = []; editing = -1; render(); say('')} };
+      [k, v].forEach(function (el) { el.addEventListener('keydown', function (e) { if (e.key === 'Enter') add() }) });
+      $('clear').onclick = function () { if (!entries.length || confirm('Remove all entries?')) { entries = []; editing = -1; render(); say('') } };
       $('copy').onclick = function () {
         var text = $('out').textContent;
-        if (navigator.clipboard) {navigator.clipboard.writeText(text).then(function () {say('Copied to clipboard.', 'ok')}, function () {say('Copy failed, select the text manually.', 'err')})}
+        if (navigator.clipboard) { navigator.clipboard.writeText(text).then(function () { say('Copied to clipboard.', 'ok') }, function () { say('Copy failed, select the text manually.', 'err') }) }
         else say('Copy not available here, select the text manually.', 'err');
       };
+      // ===== EXPORT START =====
+      var KNOWN_EXT = /\.(json|xlsx|docx|csv|tsv|txt|md|html|xml)$/i;
+      function heads() { return [$('k').placeholder || 'Key', $('v').placeholder || 'Value'] }
+      function valText(e) { return typeof e.value === 'object' && e.value !== null ? JSON.stringify(e.value) : String(e.value) }
+      function tableRows() { return entries.map(function (e, i) { return [String(i + 1), e.key, valText(e)] }) }
+      function xe(x) { return String(x).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g, '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') }
+
+      // Minimal ZIP writer (no compression), enough to build .xlsx and .docx without any library.
+      var CRC = (function () { var t = [], c, n, k; for (n = 0; n < 256; n++) { c = n; for (k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0 } return t })();
+      function crc32(b) { var c = 0xFFFFFFFF; for (var i = 0; i < b.length; i++) c = CRC[(c ^ b[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0 }
+      function zip(files, mime) {
+        var enc = new TextEncoder(), chunks = [], central = [], offset = 0, d = new Date();
+        var dt = (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1);
+        var dd = ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate();
+        files.forEach(function (f) {
+          var nameB = enc.encode(f.name), data = enc.encode(f.data), crc = crc32(data);
+          var lh = new DataView(new ArrayBuffer(30));
+          lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(8, 0, true);
+          lh.setUint16(10, dt, true); lh.setUint16(12, dd, true); lh.setUint32(14, crc, true);
+          lh.setUint32(18, data.length, true); lh.setUint32(22, data.length, true); lh.setUint16(26, nameB.length, true); lh.setUint16(28, 0, true);
+          chunks.push(new Uint8Array(lh.buffer), nameB, data);
+          var ch = new DataView(new ArrayBuffer(46));
+          ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true); ch.setUint16(10, 0, true);
+          ch.setUint16(12, dt, true); ch.setUint16(14, dd, true); ch.setUint32(16, crc, true);
+          ch.setUint32(20, data.length, true); ch.setUint32(24, data.length, true); ch.setUint16(28, nameB.length, true);
+          ch.setUint32(42, offset, true);
+          central.push(new Uint8Array(ch.buffer), nameB);
+          offset += 30 + nameB.length + data.length;
+        });
+        var csize = 0; central.forEach(function (c) { csize += c.length });
+        var end = new DataView(new ArrayBuffer(22));
+        end.setUint32(0, 0x06054b50, true); end.setUint16(8, files.length, true); end.setUint16(10, files.length, true);
+        end.setUint32(12, csize, true); end.setUint32(16, offset, true);
+        return new Blob(chunks.concat(central, [new Uint8Array(end.buffer)]), { type: mime });
+      }
+      var XML_HEAD = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+      var REL_NS = 'http://schemas.openxmlformats.org/package/2006/relationships';
+      var OD_REL = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+
+      function buildXlsx() {
+        var h = heads(), rows = tableRows();
+        function sc(ref, text, style) { return '<c r="' + ref + '" t="inlineStr"' + (style ? ' s="1"' : '') + '><is><t xml:space="preserve">' + xe(String(text).slice(0, 32000)) + '</t></is></c>' }
+        var sheet = '<row r="1">' + sc('A1', 'No.', 1) + sc('B1', h[0], 1) + sc('C1', h[1], 1) + '</row>';
+        entries.forEach(function (e, i) {
+          var r = i + 2;
+          var val = e.type === 'number' && isFinite(e.value) ? '<c r="C' + r + '"><v>' + e.value + '</v></c>' : sc('C' + r, valText(e));
+          sheet += '<row r="' + r + '"><c r="A' + r + '"><v>' + (i + 1) + '</v></c>' + sc('B' + r, e.key) + val + '</row>';
+        });
+        var NS = 'http://schemas.openxmlformats.org/spreadsheetml/2006/main';
+        return zip([
+          { name: '[Content_Types].xml', data: XML_HEAD + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>' },
+          { name: '_rels/.rels', data: XML_HEAD + '<Relationships xmlns="' + REL_NS + '"><Relationship Id="rId1" Type="' + OD_REL + '/officeDocument" Target="xl/workbook.xml"/></Relationships>' },
+          { name: 'xl/workbook.xml', data: XML_HEAD + '<workbook xmlns="' + NS + '" xmlns:r="' + OD_REL + '"><sheets><sheet name="Dictionary" sheetId="1" r:id="rId1"/></sheets></workbook>' },
+          { name: 'xl/_rels/workbook.xml.rels', data: XML_HEAD + '<Relationships xmlns="' + REL_NS + '"><Relationship Id="rId1" Type="' + OD_REL + '/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="' + OD_REL + '/styles" Target="styles.xml"/></Relationships>' },
+          { name: 'xl/styles.xml', data: XML_HEAD + '<styleSheet xmlns="' + NS + '"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>' },
+          { name: 'xl/worksheets/sheet1.xml', data: XML_HEAD + '<worksheet xmlns="' + NS + '"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols><col min="1" max="1" width="8" customWidth="1"/><col min="2" max="3" width="34" customWidth="1"/></cols><sheetData>' + sheet + '</sheetData></worksheet>' }
+        ], 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      }
+
+      function buildDocx() {
+        var h = heads(), W = [900, 4369, 4369];
+        function cell(text, w, head) {
+          return '<w:tc><w:tcPr><w:tcW w:w="' + w + '" w:type="dxa"/>' + (head ? '<w:shd w:val="clear" w:color="auto" w:fill="EDEDED"/>' : '') + '</w:tcPr><w:p><w:pPr><w:spacing w:before="40" w:after="40"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri" w:cs="Nirmala UI"/>' + (head ? '<w:b/><w:bCs/>' : '') + '<w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr><w:t xml:space="preserve">' + xe(text) + '</w:t></w:r></w:p></w:tc>';
+        }
+        var b = '<w:top w:val="single" w:sz="4" w:space="0" w:color="BFBFBF"/><w:left w:val="single" w:sz="4" w:space="0" w:color="BFBFBF"/><w:bottom w:val="single" w:sz="4" w:space="0" w:color="BFBFBF"/><w:right w:val="single" w:sz="4" w:space="0" w:color="BFBFBF"/><w:insideH w:val="single" w:sz="4" w:space="0" w:color="BFBFBF"/><w:insideV w:val="single" w:sz="4" w:space="0" w:color="BFBFBF"/>';
+        var rows = '<w:tr><w:trPr><w:tblHeader/></w:trPr>' + cell('No.', W[0], 1) + cell(h[0], W[1], 1) + cell(h[1], W[2], 1) + '</w:tr>';
+        tableRows().forEach(function (r) { rows += '<w:tr>' + cell(r[0], W[0]) + cell(r[1], W[1]) + cell(r[2], W[2]) + '</w:tr>' });
+        var doc = XML_HEAD + '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>' +
+          '<w:p><w:r><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri" w:cs="Nirmala UI"/><w:b/><w:bCs/><w:sz w:val="36"/><w:szCs w:val="36"/></w:rPr><w:t>Dictionary</w:t></w:r></w:p>' +
+          '<w:p><w:r><w:rPr><w:color w:val="666666"/></w:rPr><w:t>' + entries.length + ' entries</w:t></w:r></w:p>' +
+          '<w:tbl><w:tblPr><w:tblW w:w="9638" w:type="dxa"/><w:tblBorders>' + b + '</w:tblBorders></w:tblPr><w:tblGrid><w:gridCol w:w="' + W[0] + '"/><w:gridCol w:w="' + W[1] + '"/><w:gridCol w:w="' + W[2] + '"/></w:tblGrid>' + rows + '</w:tbl><w:p/>' +
+          '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr></w:body></w:document>';
+        return zip([
+          { name: '[Content_Types].xml', data: XML_HEAD + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>' },
+          { name: '_rels/.rels', data: XML_HEAD + '<Relationships xmlns="' + REL_NS + '"><Relationship Id="rId1" Type="' + OD_REL + '/officeDocument" Target="word/document.xml"/></Relationships>' },
+          { name: 'word/document.xml', data: doc }
+        ], 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+      }
+
+      function csvCell(x) { x = String(x); return /[",\r\n]/.test(x) ? '"' + x.replace(/"/g, '""') + '"' : x }
+      function oneLine(x) { return String(x).replace(/[\t\r\n]+/g, ' ') }
+      function buildText(f) {
+        var h = heads(), rows = tableRows(), out;
+        if (f === 'csv') out = '\uFEFF' + [['No.', h[0], h[1]]].concat(rows).map(function (r) { return r.map(csvCell).join(',') }).join('\r\n') + '\r\n';
+        else if (f === 'tsv') out = '\uFEFF' + [['No.', h[0], h[1]]].concat(rows).map(function (r) { return r.map(oneLine).join('\t') }).join('\r\n') + '\r\n';
+        else if (f === 'txt') out = entries.map(function (e) { return oneLine(e.key) + ' = ' + oneLine(valText(e)) }).join('\n') + '\n';
+        else if (f === 'md') {
+          var m = function (x) { return oneLine(x).replace(/\|/g, '\\|') };
+          out = '| No. | ' + m(h[0]) + ' | ' + m(h[1]) + ' |\n| --- | --- | --- |\n' + rows.map(function (r) { return '| ' + r[0] + ' | ' + m(r[1]) + ' | ' + m(r[2]) + ' |' }).join('\n') + '\n';
+        } else if (f === 'html') {
+          out = '<!DOCTYPE html>\n<html lang="pa"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Dictionary</title><style>body{font-family:system-ui,"Nirmala UI",sans-serif;margin:24px}table{border-collapse:collapse}th,td{border:1px solid #ccc;padding:6px 12px;text-align:left}th{background:#eee}</style></head><body><h1>Dictionary</h1><p>' + entries.length + ' entries</p><table><thead><tr><th>No.</th><th>' + xe(h[0]) + '</th><th>' + xe(h[1]) + '</th></tr></thead><tbody>\n' +
+            rows.map(function (r) { return '<tr><td>' + r[0] + '</td><td>' + xe(r[1]) + '</td><td>' + xe(r[2]) + '</td></tr>' }).join('\n') + '\n</tbody></table></body></html>\n';
+        } else {
+          out = XML_HEAD + '\n<dictionary count="' + entries.length + '">\n' + rows.map(function (r) { return '  <entry no="' + r[0] + '"><key>' + xe(r[1]) + '</key><value>' + xe(r[2]) + '</value></entry>' }).join('\n') + '\n</dictionary>\n';
+        }
+        return out;
+      }
+      var EXPORTS = {
+        json: { ext: 'json', build: function () { return new Blob([$('out').textContent], { type: 'application/json' }) } },
+        xlsx: { ext: 'xlsx', build: buildXlsx },
+        docx: { ext: 'docx', build: buildDocx },
+        csv: { ext: 'csv', build: function () { return new Blob([buildText('csv')], { type: 'text/csv;charset=utf-8' }) } },
+        tsv: { ext: 'tsv', build: function () { return new Blob([buildText('tsv')], { type: 'text/tab-separated-values;charset=utf-8' }) } },
+        txt: { ext: 'txt', build: function () { return new Blob([buildText('txt')], { type: 'text/plain;charset=utf-8' }) } },
+        md: { ext: 'md', build: function () { return new Blob([buildText('md')], { type: 'text/markdown;charset=utf-8' }) } },
+        html: { ext: 'html', build: function () { return new Blob([buildText('html')], { type: 'text/html;charset=utf-8' }) } },
+        xml: { ext: 'xml', build: function () { return new Blob([buildText('xml')], { type: 'application/xml;charset=utf-8' }) } }
+      };
+      // ===== EXPORT END =====
+      $('fmt').onchange = function () {
+        var cur = $('fn').value.trim() || 'data';
+        $('fn').value = cur.replace(KNOWN_EXT, '') + '.' + EXPORTS[this.value].ext;
+      };
       $('dl').onclick = function () {
-        var name = ($('fn').value.trim() || 'data.json'); if (!/\.json$/i.test(name)) name += '.json';
-        var blob = new Blob([$('out').textContent], {type: 'application/json'});
+        var f = $('fmt').value, x = EXPORTS[f];
+        var base = ($('fn').value.trim() || 'data').replace(KNOWN_EXT, '');
+        if (f !== 'json' && !entries.length) { say('Nothing to download yet: the list is empty.', 'err'); return }
+        var blob;
+        try { blob = x.build() } catch (e) { say('Could not create the file: ' + e.message, 'err'); return }
+        var name = base + '.' + x.ext;
         var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
-        document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () {URL.revokeObjectURL(a.href)}, 1000);
+        document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href) }, 1000);
+        say('Downloaded ' + name + '.', 'ok');
       };
       $('dups').onclick = function () {
         var groups = Object.create(null), order = [];
-        entries.forEach(function (e, i) {var c = ck(e.key); if (!groups[c]) {groups[c] = []; order.push(c)} groups[c].push({n: i + 1, e: e})});
-        var dup = order.filter(function (c) {return groups[c].length > 1});
-        if (!dup.length) {say('No duplicate keys found.', 'ok'); return }
+        entries.forEach(function (e, i) { var c = ck(e.key); if (!groups[c]) { groups[c] = []; order.push(c) } groups[c].push({ n: i + 1, e: e }) });
+        var dup = order.filter(function (c) { return groups[c].length > 1 });
+        if (!dup.length) { say('No duplicate keys found.', 'ok'); return }
         var blocks = [dup.length + ' key' + (dup.length === 1 ? '' : 's') + ' appear more than once. They look identical but are stored with different characters (or hidden spaces). Search for the key and use Delete on the row you do not want.'];
         dup.slice(0, 30).forEach(function (c) {
           var g = groups[c];
-          blocks.push({h: g[0].e.key, items: g.map(function (x) {return '#' + x.n + '  ' + x.e.key + ' = ' + String(typeof x.e.value === 'object' ? JSON.stringify(x.e.value) : x.e.value).slice(0, 40) + '   [' + codes(x.e.key) + ']'})});
+          blocks.push({ h: g[0].e.key, items: g.map(function (x) { return '#' + x.n + '  ' + x.e.key + ' = ' + String(typeof x.e.value === 'object' ? JSON.stringify(x.e.value) : x.e.value).slice(0, 40) + '   [' + codes(x.e.key) + ']' }) });
         });
         if (dup.length > 30) blocks.push('...and ' + (dup.length - 30) + ' more.');
         ask('Duplicate keys', blocks, 'Close');
@@ -542,6 +713,43 @@
         if (!list.length) return;
         Promise.all(list.map(readJsonFile)).then(mergeFiles);
       };
+      // ===== AUTOSAVE START =====
+      // Every change is saved in this browser (localStorage), so a refresh, crash or accidental close does not lose the list.
+      var STORE_KEY = 'dictionaryBuilder.autosave.v1', lastSig = null;
+      function autosave() {
+        var sig = JSON.stringify(entries);
+        if (sig === lastSig) return;
+        try {
+          if (!entries.length) localStorage.removeItem(STORE_KEY);
+          else localStorage.setItem(STORE_KEY, JSON.stringify({ v: 1, savedAt: Date.now(), entries: entries }));
+          lastSig = sig;
+          $('savedAt').style.color = 'var(--muted)';
+          $('savedAt').textContent = entries.length ? 'Autosaved in this browser at ' + new Date().toLocaleTimeString() : '';
+        } catch (e) {
+          $('savedAt').style.color = 'var(--err)';
+          $('savedAt').textContent = 'Could not autosave (browser storage is full or blocked). Download your file to keep your work.';
+        }
+      }
+      function restoreSaved() {
+        try {
+          var raw = localStorage.getItem(STORE_KEY); if (!raw) return;
+          var d = JSON.parse(raw), okTypes = ['string', 'number', 'boolean', 'null', 'json'];
+          var list = (d && Array.isArray(d.entries) ? d.entries : []).filter(function (e) {
+            return e && typeof e.key === 'string' && okTypes.indexOf(e.type) > -1 && 'value' in e;
+          }).map(function (e) { return { key: e.key, type: e.type, value: e.value } });
+          if (!list.length) return;
+          entries = list; lastSig = JSON.stringify(entries);
+          say('Restored ' + list.length + ' entries from your last session (saved ' + new Date(d.savedAt).toLocaleString() + ').', 'ok');
+          $('savedAt').textContent = 'Autosave is on.';
+        } catch (e) { }
+      }
+      window.addEventListener('storage', function (ev) {
+        if (ev.key === STORE_KEY) say('This list was changed in another tab. Reload this page to load that version.', 'err');
+      });
+      var renderOnly = render;
+      render = function () { renderOnly(); autosave() };
+      restoreSaved();
+      // ===== AUTOSAVE END =====
       render();
     })();
   </script>
